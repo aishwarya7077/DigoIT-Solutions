@@ -79,6 +79,83 @@ body {
   overflow-x: hidden;
 }
 
+/* ---------- Branded globe cursor ---------- */
+/* Hide the native cursor only when the JS orb is active (desktop pointers) */
+html.custom-cursor,
+html.custom-cursor * { cursor: none !important; }
+/* Keep a usable caret inside text fields */
+html.custom-cursor input,
+html.custom-cursor textarea,
+html.custom-cursor [contenteditable="true"] { cursor: text !important; }
+
+.cursor-orb {
+  position: fixed;
+  top: 0; left: 0;
+  width: 40px; height: 40px;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  will-change: transform;
+}
+.cursor-orb.is-visible { opacity: 1; }
+
+/* The full DigoIT logo mark (D + globe), transparent background, not clipped */
+.cursor-orb__globe {
+  position: absolute; inset: 4px;
+  background: url("/cursor-mark.png") center / contain no-repeat;
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.35));
+  transition: transform 0.18s ease;
+}
+
+/* Adaptive ring: difference blend inverts it against the background colour */
+.cursor-orb__ring {
+  position: absolute; inset: -1px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  mix-blend-mode: difference;
+  transition: transform 0.18s ease, border-color 0.18s ease;
+}
+
+/* Periodic gloss sweep, clipped to the logo silhouette */
+.cursor-orb__shine {
+  position: absolute; inset: 4px;
+  overflow: hidden;
+  -webkit-mask: url("/cursor-mark.png") center / contain no-repeat;
+  mask: url("/cursor-mark.png") center / contain no-repeat;
+}
+.cursor-orb__shine::before {
+  content: "";
+  position: absolute;
+  top: -40%; left: -60%;
+  width: 55%; height: 180%;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.85) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: rotate(18deg) translateX(-180%);
+  animation: cursorShine 4.2s ease-in-out infinite;
+}
+
+@keyframes cursorShine {
+  0%   { transform: rotate(18deg) translateX(-200%); opacity: 0; }
+  6%   { opacity: 1; }
+  20%  { transform: rotate(18deg) translateX(320%); opacity: 1; }
+  26%  { opacity: 0; }
+  100% { transform: rotate(18deg) translateX(320%); opacity: 0; }
+}
+
+/* States */
+.cursor-orb.is-active .cursor-orb__globe { transform: scale(1.35); }
+.cursor-orb.is-active .cursor-orb__ring  { transform: scale(1.45); }
+.cursor-orb.is-down .cursor-orb__globe   { transform: scale(0.85); }
+
+@media (prefers-reduced-motion: reduce) {
+  .cursor-orb__shine::before { animation: none; opacity: 0; }
+}
+
 img { max-width: 100%; display: block; height: auto; }
 
 a { color: var(--color-blue); text-decoration: none; transition: color var(--transition); }
@@ -202,17 +279,34 @@ ul { padding: 0; list-style: none; }
 
 /* Logo */
 .logo { display: inline-flex; align-items: center; gap: 0.6rem; }
-.logo__mark { width: 40px; height: 40px; flex: none; }
-.logo__text { display: flex; flex-direction: column; line-height: 1; }
-.logo__name {
-  font-family: var(--font-heading);
-  font-weight: 700;
-  font-size: 1.28rem;
-  color: var(--color-navy);
-  letter-spacing: -0.01em;
+.logo__img { height: 52px; width: auto; display: block; }
+
+/* Shared brand wordmark — identical in navbar and footer (see BrandWordmark.jsx) */
+.brand-wm { display: inline-flex; flex-direction: column; align-items: center; line-height: 1; font-size: 1.5rem; }
+.brand-wm__name {
+  font-family: "Poppins", "Montserrat", sans-serif;
+  font-weight: 800; letter-spacing: -0.01em;
+  line-height: 1.15; padding-bottom: 0.08em;
+  background: linear-gradient(180deg, #0057C8 0%, #002B7F 100%);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
 }
-.logo__name span { color: var(--color-blue); }
-.logo__tag { font-size: 0.64rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--color-muted); margin-top: 3px; }
+.brand-wm__i { position: relative; }
+.brand-wm__i::before {
+  content: ""; position: absolute; left: 50%; top: 0.26em;
+  width: 0.17em; height: 0.17em; transform: translateX(-50%) rotate(12deg);
+  background: #FFC400; border-radius: 1px;
+}
+.brand-wm__sub {
+  display: flex; align-items: center; gap: 0.4em;
+  font-family: "Montserrat", "Poppins", sans-serif;
+  font-size: 0.42em; font-weight: 700; letter-spacing: 0.42em;
+  margin-top: 0.3em; color: #FFB900;
+}
+.brand-wm__sub::before, .brand-wm__sub::after {
+  content: ""; height: 2px; width: 0.9em; border-radius: 2px;
+  background: #FFB900;
+}
 
 /* Primary nav */
 .nav { display: flex; align-items: center; gap: 0.35rem; }
@@ -778,9 +872,15 @@ ul { padding: 0; list-style: none; }
    ========================================================================== */
 .site-footer { background: var(--color-navy-900); color: rgba(255,255,255,0.8); padding-top: var(--space-3xl); }
 .footer-grid { display: grid; grid-template-columns: 1.6fr 1fr 1fr 1.4fr; gap: var(--space-xl); padding-bottom: var(--space-2xl); }
-.footer-brand .logo__name { color: var(--color-white); }
-.footer-brand .logo__name span { color: var(--color-yellow); }
-.footer-brand .logo__tag { color: rgba(255,255,255,0.6); }
+.footer-logo { display: inline-flex; align-items: center; gap: 0.75rem; }
+.footer-logo .brand-wm { font-size: 1.6rem; }
+.footer-brand .footer-logo__img {
+  height: 60px; width: auto;
+  border-radius: 14px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.35);
+  transition: transform var(--transition);
+}
+.footer-brand .footer-logo:hover .footer-logo__img { transform: scale(1.04); }
 .footer-brand p { color: rgba(255,255,255,0.65); font-size: 0.92rem; margin-top: var(--space-md); max-width: 320px; }
 .footer-col h4 { color: var(--color-white); font-size: 1rem; margin-bottom: var(--space-md); }
 .footer-col ul { display: grid; gap: 0.6rem; }

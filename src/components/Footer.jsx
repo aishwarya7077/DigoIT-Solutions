@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
-import Logo from "./Logo.jsx";
 import Icon from "./Icon.jsx";
+import BrandWordmark from "./BrandWordmark.jsx";
 import { services, company } from "../data/services.js";
 
 export default function Footer() {
@@ -9,7 +9,10 @@ export default function Footer() {
       <div className="container">
         <div className="footer-grid">
           <div className="footer-brand">
-            <Logo />
+            <Link className="footer-logo" to="/" aria-label="DigoIT Global — home">
+              <img className="footer-logo__img" src="/footer-logo.png" alt="DigoIT Global" />
+              <BrandWordmark />
+            </Link>
             <p>
               Engineering intelligent, secure and scalable IT solutions — AI, cloud,
               ERP, SAP and IoT that help businesses modernize and grow.
